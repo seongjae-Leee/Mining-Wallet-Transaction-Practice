@@ -1,4 +1,6 @@
 const SHA256 = require('crypto-js/sha256');
+const EC = require('elliptic').ec; // 개인/공용 키 생성 및 서명인증을 위한 모듈
+const ec = new EC('secp256k1'); // 지갑 알고리즘
 
 // 거래내역
 class Transaction {
@@ -6,6 +8,29 @@ class Transaction {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
     this.amount = amount;
+  }
+  calculateHash() {
+    return SHA256(this.fromAddress + this.toAddress + this.amount).toString();
+  }
+  signTransaction(singingKey) {
+    if (singingKey.getPublic('hex') !== this.fromAddress) {
+      throw new Error('You cannot sign transactions for other wallets!!!');
+    }
+
+    const hashTx = this.calculateHash();
+    const sig = singingKey.sign(hashTx, 'base64');
+    this.signiture = sig.toDER('hex');
+  }
+  isValid() {
+    if (this.fromAddress === null) return true;
+
+    if (!this.signiture || this.signiture.length === 0) {
+      throw new Error("There is no signature in this transaction");
+    }
+
+    const publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
+    return publicKey.verify(this.calculateHash(), this.signiture);
+
   }
 
 }
@@ -34,6 +59,14 @@ class Block {
     }
     console.log("Block mined", this.hash);
   }
+  hasValidTransactions() {
+    for (const tx of this.transactions) {
+      if (!tx.isValid) {
+        return false;
+      }
+    }
+    return true;
+  }
 };
 
 class BlockChain {
@@ -44,7 +77,7 @@ class BlockChain {
     this.miningReward = 100;
   }
   createGenesisBlock() {
-    return new Block(0, "01/02/2022", "Genesis Block", "0");
+    return new Block(0, Date.parse("2022-01-08"), "Genesis Block", "0");
   }
   getLatestBlock() {
     return this.chain[this.chain.length - 1];
@@ -62,12 +95,11 @@ class BlockChain {
 
   // ● addBlock 함수 대체
   minePendingTrasactions(miningRewardAddress) {
-    // 새로운 블록의 previousHash 값이 바로 전 블록의 해쉬값과 같은지 확인하고
-    newBlock.previousHash = this.getLatestBlock().hash;
-    // 같다면 새로운 해쉬값을 계산해서 해쉬로 넣어주고
-    newBlock.hash = newBlock.calculateHash();
+    const rewardTx = new Transaction(null, miningRewardAddress, this.miningReward);
+    this.pendingTransactions.push(rewardTx);
+
     // 새 블록을 만들어서
-    let block = new Block(777, Date.now(), this.pendingTransactions);
+    let block = new Block(777, Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
     // 정해진 난이도에 따라 채굴하고
     block.mineBlock(this.difficulty);
 
@@ -77,12 +109,26 @@ class BlockChain {
 
     // pendingTransactions의 배열에는 주소와 리워드코인이 담긴 새로운 거래가 들어가게 된다.
     this.pendingTransactions = [
-      new Trasaction(null, miningRewardAddress, this.miningReward)
+      // new Trasaction(null, miningRewardAddress, this.miningReward)
     ];
   }
 
-  // ● 생성된 거래를 pendingTransactions 배열에 넣어주기
-  createTransaction(transaction) {
+  // // ● 생성된 거래를 pendingTransactions 배열에 넣어주기
+  // createTransaction(transaction) {
+  //   this.pendingTransactions.push(transaction);
+  // }
+
+  // ● 유효성검사를 하고 새로운 거래를 추가해주기
+  addTransaction(transaction) {
+    // 주소가 빠져있진 않은지
+    if (!transaction.fromAddress || !transaction.toAddress) {
+      throw new Error('Transaction must include from and to address');
+    }
+    // 거래 자체가 유효성 검사는 마쳤는지
+    if (!transaction.isValid()) {
+      throw new Error('You cannot add invalid transaction to chain');
+    }
+
     this.pendingTransactions.push(transaction);
   }
 
@@ -114,6 +160,11 @@ class BlockChain {
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
+
+      // transaction의 유효성을 따져야함
+      if (!currentBlock.hasValidTransactions()) {
+        return false;
+      }
 
       // 현재 블록이 calculateHash로 만들어진 값이 아니면 false
       if (currentBlock.hash !== currentBlock.calculateHash()) {
