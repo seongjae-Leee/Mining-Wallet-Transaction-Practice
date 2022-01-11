@@ -1,4 +1,4 @@
-const SHA256 = require('crypto-js/sha256');
+const SHA256 = require('crypto-js/sha256'); // 해쉬
 const EC = require('elliptic').ec; // 개인/공용 키 생성 및 서명인증을 위한 모듈
 const ec = new EC('secp256k1'); // 지갑 알고리즘
 
