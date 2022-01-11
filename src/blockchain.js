@@ -22,7 +22,7 @@ class Transaction {
     this.signiture = sig.toDER('hex');
   }
   isValid() {
-    if (this.fromAddress === null) return true;
+    if (this.fromAddress === null) return true; y;
 
     if (!this.signiture || this.signiture.length === 0) {
       throw new Error("There is no signature in this transaction");
@@ -35,7 +35,7 @@ class Transaction {
 
 }
 
-// 우리가 이번 블록체인에 담을 블록의 모습을 정해보자
+// 블록체인에 담을 블록의 모습을 정해보자
 class Block {
   constructor(index, timestamp, transactions, previousHash = '') {
     this.index = index;
@@ -61,7 +61,7 @@ class Block {
   }
   hasValidTransactions() {
     for (const tx of this.transactions) {
-      if (!tx.isValid) {
+      if (!tx.isValid()) {
         return false;
       }
     }
@@ -118,7 +118,7 @@ class Blockchain {
   //   this.pendingTransactions.push(transaction);
   // }
 
-  // ● 유효성검사를 하고 새로운 거래를 추가해주기
+  // ● 유효성검사를 하고 새로운 거래를 pendingTransactions에 추가해주기
   addTransaction(transaction) {
     // 주소가 빠져있진 않은지
     if (!transaction.fromAddress || !transaction.toAddress) {
