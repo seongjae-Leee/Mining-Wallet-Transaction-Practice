@@ -69,7 +69,7 @@ class Block {
   }
 };
 
-class BlockChain {
+class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this.difficulty = 2;
@@ -179,4 +179,4 @@ class BlockChain {
   }
 }
 
-module.exports = { BlockChain, Transaction };
+module.exports = { Blockchain, Transaction };

@@ -1,4 +1,4 @@
-const { BlockChain, Transaction } = require('./blockchain');
+const { Blockchain, Transaction } = require('./blockchain');
 const EC = require('elliptic').ec; // 개인/공용 키 생성 및 서명인증을 위한 모듈
 const ec = new EC('secp256k1'); // 지갑 알고리즘
 
@@ -8,7 +8,7 @@ const myWalletAddress = myKey.getPublic('hex');
 
 
 // Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test
-let mimiCoin = new BlockChain();
+let mimiCoin = new Blockchain();
 
 // 거래 생성하고 사인해서 더해주기
 const tx1 = new Transaction(myWalletAddress, 'public key goes here', 15);
