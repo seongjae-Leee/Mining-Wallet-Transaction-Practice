@@ -19,17 +19,17 @@ class Transaction {
 
     const hashTx = this.calculateHash();
     const sig = singingKey.sign(hashTx, 'base64');
-    this.signiture = sig.toDER('hex');
+    this.signature = sig.toDER('hex'); // 전자서명...
   }
   isValid() {
-    if (this.fromAddress === null) return true; y;
+    if (this.fromAddress === null) return true; // fromAddress가 null이면 시스템이 reward로 코인을 준 것으로 판단하기 때문에 true 
 
-    if (!this.signiture || this.signiture.length === 0) {
+    if (!this.signature || this.signature.length === 0) {
       throw new Error("There is no signature in this transaction");
     }
 
     const publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
-    return publicKey.verify(this.calculateHash(), this.signiture);
+    return publicKey.verify(this.calculateHash(), this.signature);
 
   }
 
