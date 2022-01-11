@@ -40,7 +40,7 @@ class Block {
     this.index = index;
     this.timestamp = timestamp;
     this.transactions = transactions;
-    this.previousHash = this.previousHash;
+    this.previousHash = previousHash;
     this.hash = this.calculateHash();
     this.nonce = 0;
   }
