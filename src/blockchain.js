@@ -32,7 +32,6 @@ class Transaction {
     return publicKey.verify(this.calculateHash(), this.signature);
 
   }
-
 }
 
 // 블록체인에 담을 블록의 모습을 정해보자
