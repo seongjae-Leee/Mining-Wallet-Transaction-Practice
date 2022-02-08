@@ -1,2 +1,2 @@
 # mining practice
-simple Blockchain mining by Pow.
+simple Blockchain mining using Pow.
